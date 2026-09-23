@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q4 Projections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#F2F4F7; --surface:#FFFFFF; --ink:#15213A; --muted:#5A6479; --line:#D8DEE8;
+  --accent:#1E4B87; --accent-ink:#FFFFFF; --accent-soft:#E2EBF7; --taken:#ECEFF3; --taken-ink:#8A93A5;
+  --good:#1F7A4D; --good-soft:#E3F3EA; --warn:#9A5B00; --danger:#B3261E;
+  --display:"Newsreader", Georgia, "Times New Roman", serif;
+  --body:"Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0E1420; --surface:#162033; --ink:#E6EBF3; --muted:#9BA6BB; --line:#283450;
+    --accent:#86AEE6; --accent-ink:#0E1420; --accent-soft:#1D2B46; --taken:#1A2233; --taken-ink:#5F6B82;
+    --good:#6FCF9C; --good-soft:#15302A; --warn:#E3B055; --danger:#F08A82;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0E1420; --surface:#162033; --ink:#E6EBF3; --muted:#9BA6BB; --line:#283450;
+  --accent:#86AEE6; --accent-ink:#0E1420; --accent-soft:#1D2B46; --taken:#1A2233; --taken-ink:#5F6B82;
+  --good:#6FCF9C; --good-soft:#15302A; --warn:#E3B055; --danger:#F08A82;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}html{color-scheme:light}body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding:0 16px}
+.wrap{max-width:1040px;margin:0 auto;padding-block:40px 64px}
+header{display:grid;gap:10px;margin-bottom:28px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(30px,5vw,42px);line-height:1.1;margin:0;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:60ch}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.fact{font-size:13px;font-weight:500;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
+.status{min-height:22px;font-size:13px;color:var(--muted)}
+.status.err{color:var(--danger)}
+
+.mine{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--good-soft);border:1px solid color-mix(in srgb,var(--good) 35%,transparent);border-radius:10px;padding:14px 16px;margin-bottom:20px}
+.mine strong{color:var(--good)}
+
+.days{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:860px){.days{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.days{grid-template-columns:1fr}}
+.day{display:flex;flex-direction:column;gap:8px}
+.dayhead{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:4px}
+.dayhead h2{font-family:var(--display);font-weight:600;font-size:21px;margin:0}
+.dayhead span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.slot{appearance:none;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--surface);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;display:grid;gap:2px;
+  transition:border-color .12s,background .12s}
+.slot:hover{border-color:var(--accent)}
+.slot:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.slot .t{font-weight:600;font-variant-numeric:tabular-nums}
+.slot .sub{font-size:12px;color:var(--muted)}
+.slot[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.slot[aria-pressed="true"] .sub{color:var(--accent-ink);opacity:.85}
+.slot.taken{background:var(--taken);color:var(--taken-ink);cursor:default;border-style:dashed}
+.slot.taken .t{text-decoration:line-through;text-decoration-thickness:1px}
+.slot.taken .sub{color:var(--taken-ink)}
+.slot.yours{background:var(--good-soft);border-color:var(--good);border-style:solid;color:var(--ink);cursor:default}
+.slot.yours .t{text-decoration:none}
+.slot.yours .sub{color:var(--good)}
+.slot.owner-taken{cursor:pointer}
+.slot.owner-taken .who{color:var(--ink);font-size:13px;font-weight:500}
+
+.panel{margin-top:28px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:16px}
+.panel h3{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.fields{grid-template-columns:1fr}}
+label{display:grid;gap:4px;font-size:13px;font-weight:600}
+input,textarea{font:inherit;font-weight:400;color:var(--ink);background:var(--ground);border:1px solid var(--line);border-radius:6px;padding:9px 10px;width:100%}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.full{grid-column:1/-1}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:600;border-radius:8px;padding:10px 16px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.danger{background:transparent;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted);margin:0}
+
+.admin{margin-top:36px;display:grid;gap:12px}
+.admin h3{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">The Whittingham Agencies</div>
+    <h1>Q4 Projections</h1>
+    <p class="lede">Book a one-hour Q4 Projections meeting with Natalie. Pick any open time before October 1. Once you book a time, nobody else can take it. Natalie will send you the calendar invite and meeting link.</p>
+    <div class="facts">
+      <span class="fact">60 minutes</span>
+      <span class="fact">All times Eastern (ET)</span>
+      <span class="fact" id="openCount">Checking…</span>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite">Loading the latest availability…</div>
+  </header>
+
+  <div class="mine" id="mine" hidden></div>
+
+  <div class="days" id="days"></div>
+
+  <form class="panel" id="panel" hidden novalidate>
+    <h3 id="panelTitle">Confirm your time</h3>
+    <div class="fields">
+      <label for="f-name">Your name
+        <input id="f-name" name="name" autocomplete="name" required>
+      </label>
+      <label for="f-email">Email for the invite
+        <input id="f-email" name="email" type="email" autocomplete="email" required>
+      </label>
+      <label for="f-topic" class="full">Anything you want to cover? <span style="font-weight:400;color:var(--muted)">(optional)</span>
+        <textarea id="f-topic" name="topic" rows="2"></textarea>
+      </label>
+    </div>
+    <div class="actions">
+      <button class="btn" id="bookBtn" type="submit">Book this time</button>
+      <button class="btn ghost" id="cancelSel" type="button">Choose a different time</button>
+    </div>
+    <p class="hint" id="formMsg"></p>
+  </form>
+
+  <p class="hint" style="margin-top:28px">Need to change or cancel? Contact Natalie and she'll free up your time.</p>
+</div>
+
+<script>
+// Paste your Apps Script web app URL (ends in /exec) between the quotes:
+const API_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+(function(){
+  const $ = id => document.getElementById(id);
+  const fmtTime = h => `${h%12||12}:00 ${h>=12?"PM":"AM"}`;
+  const range = s => `${fmtTime(s.hour)} – ${fmtTime(s.hour+1)}`;
+  const noon = d => new Date(d+"T12:00:00-04:00");
+  const dayName = d => noon(d).toLocaleDateString("en-US",{weekday:"long",timeZone:"America/New_York"});
+  const dayShort = d => noon(d).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"America/New_York"});
+  const longLabel = s => `${dayName(s.date)}, ${dayShort(s.date)} · ${range(s)} ET`;
+  const viewerTZ = (()=>{ try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return null} })();
+  function localHint(s){
+    if(!viewerTZ) return "";
+    const d=new Date(s.start);
+    const et=d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"});
+    const lo=d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:viewerTZ});
+    return et===lo ? "" : `${lo} your time`;
+  }
+  function store(k,v){ try{ v===undefined ? localStorage.removeItem(k) : localStorage.setItem(k,v); }catch(e){} }
+  function load(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+  let slots=[], selected=null, busy=false, bookedLabel=load("q4p-booked");
+  const setStatus=(m,err)=>{ const el=$("status"); el.textContent=m||""; el.classList.toggle("err",!!err); };
+
+  function render(){
+    const days=$("days"); days.textContent="";
+    const dates=[...new Set(slots.map(s=>s.date))];
+    let open=0;
+    for(const date of dates){
+      const col=document.createElement("div"); col.className="day";
+      const ds=slots.filter(s=>s.date===date);
+      const head=document.createElement("div"); head.className="dayhead";
+      const h2=document.createElement("h2"); h2.textContent=`${dayName(date).slice(0,3)} ${dayShort(date)}`;
+      const cnt=document.createElement("span"); cnt.textContent=`${ds.filter(s=>s.open).length} open`;
+      head.append(h2,cnt); col.append(head);
+      const openHere=ds.filter(s=>s.open);
+      if(!openHere.length){ const p=document.createElement("p"); p.className="hint"; p.textContent="No open times left."; col.append(p); }
+      for(const s of openHere){
+        open++;
+        const b=document.createElement("button"); b.type="button"; b.className="slot"; b.id="slot-"+s.id;
+        const t=document.createElement("span"); t.className="t"; t.textContent=range(s);
+        const sub=document.createElement("span"); sub.className="sub"; sub.textContent=localHint(s)||"Open";
+        b.append(t,sub); b.setAttribute("aria-pressed", selected===s.id?"true":"false");
+        b.addEventListener("click",()=>select(s.id));
+        col.append(b);
+      }
+      days.append(col);
+    }
+    $("openCount").textContent=`${open} open time${open===1?"":"s"}`;
+    if(selected && !slots.some(s=>s.id===selected && s.open)){ selected=null; $("panel").hidden=true; }
+    const mine=bookedLabel;
+    const box=$("mine");
+    if(mine){ box.textContent=""; const st=document.createElement("strong"); st.textContent="You're booked: "; box.append(st,document.createTextNode(mine+". Natalie will send your invite.")); box.hidden=false; }
+    else box.hidden=true;
+  }
+
+  function select(id){
+    selected=id; const s=slots.find(x=>x.id===id);
+    $("panelTitle").textContent=longLabel(s); $("formMsg").textContent="";
+    $("panel").hidden=false; render();
+    if(!$("f-name").value) $("f-name").focus({preventScroll:true});
+    $("panel").scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  $("cancelSel").addEventListener("click",()=>{ selected=null; $("panel").hidden=true; render(); });
+
+  async function refresh(){
+    try{
+      const r=await fetch(API_URL); const d=await r.json();
+      if(!d.ok) throw 0;
+      slots=d.slots; setStatus(""); render();
+    }catch(e){ setStatus("Couldn't load availability. Refresh the page to try again.",true); }
+  }
+
+  $("panel").addEventListener("submit", async e=>{
+    e.preventDefault(); if(busy||!selected) return;
+    const name=$("f-name").value.trim(), email=$("f-email").value.trim(), topic=$("f-topic").value.trim();
+    if(!name){ $("formMsg").textContent="Add your name so Natalie knows who booked."; $("f-name").focus(); return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $("formMsg").textContent="Enter a valid email so Natalie can send the invite."; $("f-email").focus(); return; }
+    busy=true; $("bookBtn").disabled=true; $("bookBtn").textContent="Booking…";
+    const s=slots.find(x=>x.id===selected);
+    try{
+      const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({slotId:selected,name,email,topic})});
+      const d=await r.json();
+      if(d.slots) slots=d.slots;
+      if(d.ok){
+        bookedLabel=longLabel(s); store("q4p-booked",bookedLabel); selected=null; $("panel").hidden=true;
+        setStatus(`Booked: ${longLabel(s)}. Natalie will send your invite.`); render();
+        window.scrollTo({top:0,behavior:"smooth"});
+      } else if(d.error==="taken"){
+        selected=null; $("panel").hidden=true; setStatus("Someone just took that time. Pick another open time.",true); render();
+      } else if(d.error==="already_booked"){
+        $("formMsg").textContent=`You already have a time booked: ${d.existing}. Contact Natalie if you need to change it.`;
+      } else if(d.error==="busy"){
+        $("formMsg").textContent="Lots of people are booking right now. Try again in a few seconds.";
+      } else {
+        $("formMsg").textContent="Check your name and email, then try again.";
+      }
+    }catch(err){ $("formMsg").textContent="The booking didn't go through. Check your connection and try again."; }
+    finally{ busy=false; $("bookBtn").disabled=false; $("bookBtn").textContent="Book this time"; }
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>
